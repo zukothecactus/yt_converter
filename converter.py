@@ -22,7 +22,7 @@ def convert_to_mp3(input_file, output_file):
 
 
 def mp4_file_remover():
-    directory_path = r"C:\Users\obren\OneDrive\Desktop\code\projekti\yt_converter\yt_converter"
+    directory_path = r"C:\Users\obren\OneDrive\Desktop\code\projekti\yt_converter"
     for item in os.listdir(directory_path):
         if(item.endswith(".mp4")):
             file_path = os.path.join(directory_path, item)
