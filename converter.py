@@ -1,5 +1,6 @@
 import subprocess
 import os
+import yt_dlp
 from pytubefix import YouTube
 from pytubefix import Playlist
 
@@ -34,7 +35,7 @@ def mp4_file_remover():
 
 
 def yt_download(link):
-    
+#if(ext == "mp3"):
     if (is_Pl == "p"):
         playlist = Playlist(link)
         for video_url in playlist.video_urls:
@@ -53,12 +54,40 @@ def yt_download(link):
         print(youtube_video.title +" has been downloaded\n")
         convert_to_mp3(youtube_video.title+".mp4", youtube_video.title+".mp3")
     mp4_file_remover()
-    
+    ''' 
+    elif (ext == "mp4"):
+        options = {
+            'format': 'best',  # Downloads the best quality video with audio
+            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Saves the video with its title in the "downloads" folder
+        }
+        if (is_Pl == "p"):
+            playlist = Playlist(link)
+            for video_url in playlist.video_urls:
+                try:
+                    with yt_dlp.YoutubeDL(options) as ydl:
+                        #ydl.download([video_url])
+                        info = ydl.extract_info(video_url, download = True)
+                        video_title = info.get('title', 'No title found')
+                        print(video_title,"downloaded successfuly")
+                except Exception as e:
+                    print(f"Failed to download {video_url}: {e}")
+        else:
+            try:
+                with yt_dlp.YoutubeDL(options) as ydl:
+                    #ydl.download([video_url])
+                    info = ydl.extract_info(link, download = True)
+                    video_title = info.get('title', 'No title found')
+                    print(video_title,"downloaded successfuly")
+            except Exception as e:
+                print(f"Failed to download {link}: {e}")
+    '''
     
 is_Pl = ''
+ext = ''
 ans = True
 while(ans):
     is_Pl = input("Do you want to download a playlist or a single video (p/s)? ")
+    #ext = input("Do you want audio or video files (mp3/mp4)? ")
     if(is_Pl == "p"):
         link = input("Unesite link playlist-e: ")
         ans = False;
