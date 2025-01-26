@@ -3,23 +3,35 @@ import os
 import yt_dlp
 from pytubefix import YouTube
 from pytubefix import Playlist
+import shlex
 
-def convert_to_mp3(input_file, output_file):
+def convert_to_mp3(input_file: str, output_file: str = None):
+    
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"Input file '{input_file}' does not exist.")
+
+    # Generate default output file name if not provided
+    if output_file is None:
+        output_file = os.path.splitext(input_file)[0] + ".mp3"
+    
     ffmpeg_cmd = [
         "ffmpeg",
         "-i", input_file,
         "-vn",
-        "-acodec","libmp3lame",
-        "-ab", "320k",
+        "-ac", "2",
+        "-b:a", "320k",
         "-ar", "44100",
         "-y", 
         output_file
     ]
     try:
-        subprocess.run(ffmpeg_cmd, check=True)
+        subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("Conversion successful")
     except subprocess.CalledProcessError as e:
         print("Conversion failed")
+        print(f"Command output: {e.stderr}")
+    except FileNotFoundError:
+        print("FFmpeg is not installed or not in PATH")
 
 
 def mp4_file_remover():
@@ -40,47 +52,24 @@ def yt_download(link):
         playlist = Playlist(link)
         for video_url in playlist.video_urls:
             try:
-                video = YouTube(video_url)
-                video = video.streams.get_lowest_resolution()
-                video.download()
-                print(video.title +" has been downloaded\n")
-                convert_to_mp3(video.title+".mp4", video.title+".mp3")
+                youtube_video = YouTube(video_url, 'WEB')
+                youtube_video = youtube_video.streams.get_lowest_resolution()
+                downloaded = youtube_video.download()
+                ime = os.path.join(os.path.dirname(downloaded), youtube_video.title[:-24].strip()+".mp4")
+                os.rename(downloaded, ime)
+                print(ime +" has been downloaded\n")
+                convert_to_mp3(ime)
             except Exception as e:
                 print(f"Failed to download {video_url}: {e}")
     else:
-        youtube_video = YouTube(link)
+        youtube_video = YouTube(link, 'WEB')
         youtube_video = youtube_video.streams.get_lowest_resolution()
-        youtube_video.download()
-        print(youtube_video.title +" has been downloaded\n")
-        convert_to_mp3(youtube_video.title+".mp4", youtube_video.title+".mp3")
+        downloaded = youtube_video.download()
+        ime = os.path.join(os.path.dirname(downloaded), youtube_video.title[:-24].strip()+".mp4")
+        os.rename(downloaded, ime)
+        print(ime +" has been downloaded\n")
+        convert_to_mp3(ime)
     mp4_file_remover()
-    ''' 
-    elif (ext == "mp4"):
-        options = {
-            'format': 'best',  # Downloads the best quality video with audio
-            'outtmpl': 'downloads/%(title)s.%(ext)s',  # Saves the video with its title in the "downloads" folder
-        }
-        if (is_Pl == "p"):
-            playlist = Playlist(link)
-            for video_url in playlist.video_urls:
-                try:
-                    with yt_dlp.YoutubeDL(options) as ydl:
-                        #ydl.download([video_url])
-                        info = ydl.extract_info(video_url, download = True)
-                        video_title = info.get('title', 'No title found')
-                        print(video_title,"downloaded successfuly")
-                except Exception as e:
-                    print(f"Failed to download {video_url}: {e}")
-        else:
-            try:
-                with yt_dlp.YoutubeDL(options) as ydl:
-                    #ydl.download([video_url])
-                    info = ydl.extract_info(link, download = True)
-                    video_title = info.get('title', 'No title found')
-                    print(video_title,"downloaded successfuly")
-            except Exception as e:
-                print(f"Failed to download {link}: {e}")
-    '''
     
 is_Pl = ''
 ext = ''
